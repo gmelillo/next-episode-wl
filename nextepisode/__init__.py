@@ -154,7 +154,7 @@ class NextEpisode(List):
             else:
                 self.list[idx]['TV Rage']['Airtime'] = 'N/A'
 
-            if datetime.now().strftime("%b/%d%Y") == self.list[idx]['TV Rage']['Next Episode']['Air Date']:
+            if datetime.now().strftime("%b/%d/%Y") == self.list[idx]['TV Rage']['Next Episode']['Air Date']:
                 self.today_list.append(self.list[idx])
-            if datetime.now().strftime("%b/%d%Y") == self.list[idx]['TV Rage']['Latest Episode']['Air Date']:
+            if datetime.now().strftime("%b/%d/%Y") == self.list[idx]['TV Rage']['Latest Episode']['Air Date']:
                 self.today_list.append(self.list[idx])
