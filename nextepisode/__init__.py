@@ -2,7 +2,7 @@ __author__ = "Gabriel Melillo<gabriel@melillo.me>"
 __version__ = "0.5"
 
 import mechanize
-from uuid import uuid3, NAMESPACE_URL
+from uuid import uuid3, NAMESPACE_OID
 from bs4 import BeautifulSoup
 
 
@@ -74,8 +74,15 @@ class NextEpisode(List):
             for link in links:
                 if link.contents[0] == "V":
                     link.contents[0] = "V (2009)"
-                self._add_value({
-                    'Name': [link.contents[0]],
-                    'index': uuid3(NAMESPACE_URL, link.get('href')).__str__(),
-                    'URL': link.get('href')
-                })
+                try:
+                    self._add_value({
+                        'Name': [link.contents[0]],
+                        'index': uuid3(NAMESPACE_OID, link.get('href').encode('utf8', 'ignore')).__str__(),
+                        'URL': link.get('href').encode('utf8', 'ignore')
+                    })
+                except UnicodeDecodeError:
+                    self._add_value({
+                        'Name': [link.contents[0]],
+                        'index': 'N/A',
+                        'URL': link.get('href').encode('utf8', 'ignore')
+                    })
