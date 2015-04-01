@@ -4,7 +4,7 @@ __version__ = "0.5"
 import mechanize
 from uuid import uuid3, NAMESPACE_OID
 from urllib import urlencode
-from re import search as reg_search
+from regexp import regexp_search, Expression
 from httplib2 import Http
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -92,14 +92,6 @@ class NextEpisode(List):
                         'URL': link.get('href').encode('utf8', 'ignore')
                     })
 
-    @staticmethod
-    def do_regexp(regexp, data, number=1, default='N/A'):
-        m = reg_search(regexp, data)
-        if m is not None:
-            return m.group(number)
-        else:
-            return default
-
     def attach_tvrage_info(self):
         for idx, show in enumerate(self.list):
             h = Http('.cache')
@@ -112,49 +104,32 @@ class NextEpisode(List):
 
             resp, content = h.request(url)
 
-            self.list[idx]['TV Rage'] = {
-                'Show ID': self.do_regexp("Show ID@([0-9]{0,5})\\n", content),
-                'Show Name': self.do_regexp("Show Name@([a-zA-Z0-9_'\. ]*)\\n", content),
-                'URL': self.do_regexp("Show URL@([a-zA-Z0-9_'\. /:-]*)\\n", content),
-                'Premiered': self.do_regexp('Premiered@([0-9]{4})\\n', content),
-                'Country': self.do_regexp('Country@([a-zA-Z]*)\\n', content),
-                'Status': self.do_regexp('Status@([a-zA-Z /]*)\\n', content),
-                'Classification': self.do_regexp('Classification@([a-zA-Z -]*)\\n', content),
-                'Genres': self.do_regexp('Genres@([a-zA-Z |/\-]*)\\n', content),
-                'Network': self.do_regexp('Network@([a-zA-Z |\(\)]*)\\n', content),
-            }
-            latest_episode = reg_search('Latest Episode@([0-9x]*)\^(.*)\^([a-zA-Z0-9/]*)\\n', content)
-            if latest_episode is not None:
-                self.list[idx]['TV Rage']['Latest Episode'] = {
-                    'Number': latest_episode.group(1),
-                    'Title': latest_episode.group(2),
-                    'Air Date': latest_episode.group(3)
-                }
-            else:
-                self.list[idx]['TV Rage']['Latest Episode'] = {
-                    'Number': 'N/A',
-                    'Title': 'N/A',
-                    'Air Date': 'N/A'
-                }
-            next_episode = reg_search('Next Episode@([0-9x]*)\^(.*)\^([a-zA-Z0-9/]*)\\n', content)
-            if next_episode is not None:
-                self.list[idx]['TV Rage']['Next Episode'] = {
-                    'Number': next_episode.group(1),
-                    'Title': next_episode.group(2),
-                    'Air Date': next_episode.group(3)
-                }
-            else:
-                self.list[idx]['TV Rage']['Next Episode'] = {
-                    'Number': 'N/A',
-                    'Title': 'N/A',
-                    'Air Date': 'N/A'
-                }
-            if reg_search('Airtime@([a-zA-Z0-9 :]*)\\n', content) is not None:
-                self.list[idx]['TV Rage']['Airtime'] = reg_search('Airtime@([a-zA-Z0-9 :]*)\\n', content).group(1)
-            else:
-                self.list[idx]['TV Rage']['Airtime'] = 'N/A'
+            _today = datetime.now().strftime("%b/%d/%Y")
 
-            if datetime.now().strftime("%b/%d/%Y") == self.list[idx]['TV Rage']['Next Episode']['Air Date']:
+            self.list[idx]['TV Rage'] = {
+                'Show ID': regexp_search(Expression.SHOW_ID, content),
+                'Show Name': regexp_search(Expression.SHOW_NAME, content),
+                'URL': regexp_search(Expression.URL, content),
+                'Premiered': regexp_search(Expression.PREMIERED, content),
+                'Country': regexp_search(Expression.COUNTRY, content),
+                'Status': regexp_search(Expression.STATUS, content),
+                'Classification': regexp_search(Expression.CLASSIFICATION, content),
+                'Genres': regexp_search(Expression.GENRES, content),
+                'Network': regexp_search(Expression.NETWORK, content),
+                'Airtime': regexp_search(Expression.AIRTIME, content),
+                'Latest Episode': {
+                    'Number': regexp_search(Expression.LEPISODE, content, number=1),
+                    'Title': regexp_search(Expression.LEPISODE, content, number=2),
+                    'Air Date': regexp_search(Expression.LEPISODE, content, number=3)
+                },
+                'Next Episode': {
+                    'Number': regexp_search(Expression.NEPISODE, content, number=1),
+                    'Title': regexp_search(Expression.NEPISODE, content, number=2),
+                    'Air Date': regexp_search(Expression.NEPISODE, content, number=3)
+                }
+            }
+
+            if _today == self.list[idx]['TV Rage']['Next Episode']['Air Date']:
                 self.today_list.append(self.list[idx])
-            if datetime.now().strftime("%b/%d/%Y") == self.list[idx]['TV Rage']['Latest Episode']['Air Date']:
+            if _today == self.list[idx]['TV Rage']['Latest Episode']['Air Date']:
                 self.today_list.append(self.list[idx])
