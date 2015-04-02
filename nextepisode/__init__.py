@@ -1,5 +1,5 @@
 __author__ = "Gabriel Melillo<gabriel@melillo.me>"
-__version__ = "0.5"
+__version__ = "0.5.1"
 
 import mechanize
 from uuid import uuid3, NAMESPACE_OID
