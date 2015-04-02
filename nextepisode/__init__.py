@@ -8,6 +8,7 @@ from regexp import regexp_search, Expression
 from httplib2 import Http
 from bs4 import BeautifulSoup
 from datetime import datetime
+from socket import error as socket_error
 
 
 class List(object):
@@ -102,7 +103,10 @@ class NextEpisode(List):
                 })
             )
 
-            resp, content = h.request(url)
+            try:
+                resp, content = h.request(url)
+            except socket_error:
+                resp, content = ("", "")
 
             _today = datetime.now().strftime("%b/%d/%Y")
 
