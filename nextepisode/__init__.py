@@ -1,5 +1,5 @@
 __author__ = "Gabriel Melillo<gabriel@melillo.me>"
-__version__ = "0.5.1"
+__version__ = "0.5.6"
 
 import mechanize
 from uuid import uuid3, NAMESPACE_OID
@@ -14,8 +14,8 @@ from socket import error as socket_error
 class List(object):
     list = []
 
-    def __init__(self, defaultlist=[]):
-        self.list = defaultlist
+    def __init__(self, default=[]):
+        self.list = default
 
     def __getitem__(self, item):
         return self.list[item]
@@ -51,6 +51,11 @@ class NextEpisode(List):
         self.add_show = self._add_value
         self.today_list = []
 
+        self._cache_dir = '/tmp/.necd'
+        self._logghedin = False
+        self._username = username
+        self._password = password
+
         if autologin:
             self.do_login(
                 username=username,
@@ -66,8 +71,12 @@ class NextEpisode(List):
         self.browser.form['username'] = username
         self.browser.form['password'] = password
         self.browser.submit()
+        self._logghedin = True
 
     def update_list(self):
+        if not self._logghedin:
+            self.do_login(self._username, self._password)
+
         html = self.browser.open('http://next-episode.net/settings?action=manageWL').read()
         soup = BeautifulSoup(html)
         divs = soup.findAll('div',
@@ -95,7 +104,7 @@ class NextEpisode(List):
 
     def attach_tvrage_info(self):
         for idx, show in enumerate(self.list):
-            h = Http('.cache')
+            h = Http(self._cache_dir)
             url = "http://services.tvrage.com/tools/quickinfo.php?{}".format(
                 urlencode({
                     'show': show['Name'][0].__str__(),
