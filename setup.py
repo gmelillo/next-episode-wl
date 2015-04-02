@@ -32,5 +32,5 @@ setup(
     ],
     license="GNU GENERAL PUBLIC LICENSE",
     long_description='Class created to provide a easy access to your next episode watch '
-                     'list and easy integrate information with tvrage'
+                     'list and easy integrate information with tvrage\n\n'
 )

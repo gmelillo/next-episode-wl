@@ -7,7 +7,7 @@ from urllib import urlencode
 from regexp import regexp_search, Expression
 from httplib2 import Http
 from bs4 import BeautifulSoup
-from datetime import datetime
+from time import time2str
 from socket import error as socket_error
 
 
@@ -117,7 +117,7 @@ class NextEpisode(List):
             except socket_error:
                 resp, content = ("", "")
 
-            _today = datetime.now().strftime("%b/%d/%Y")
+            _today = time2str()
 
             self.list[idx]['TV Rage'] = {
                 'Show ID': regexp_search(Expression.SHOW_ID, content),
