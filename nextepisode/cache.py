@@ -34,11 +34,11 @@ class TVRageCache(object):
             self._cursor = self._db.cursor()
 
     def _clear_expired(self):
-        self._cursor.execute('''DELETE FROM tvrage WHERE expire >= date('now')''')
+        self._cursor.execute('''DELETE FROM tvrage WHERE expire <= date('now')''')
         self._db.commit()
 
     def write_cache(self, uuid, data, expire):
-        self._cursor.execute('INSERT OR REPLACE INTO torrentz_cache VALUES (?,?,date(),?)', (
+        self._cursor.execute('INSERT OR REPLACE INTO tvrage VALUES (?,?,date(),?)', (
             uuid,
             dumps(data),
             expire
@@ -47,7 +47,7 @@ class TVRageCache(object):
         self._clear_expired()
 
     def get_cache(self, uuid):
-        self._cursor.execute('SELECT * FROM torrentz_cache WHERE uuid=?', (uuid,))
+        self._cursor.execute('SELECT * FROM tvrage WHERE uuid=?', (uuid,))
         data = self._cursor.fetchone()
         self._clear_expired()
         if data is not None:

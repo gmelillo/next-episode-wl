@@ -6,9 +6,11 @@ from uuid import uuid3, NAMESPACE_OID
 from urllib import urlencode
 from regexp import regexp_search, Expression
 from httplib2 import Http
+from httplib import BadStatusLine
 from bs4 import BeautifulSoup
-from time import time2str, get_offset_time
+from time import time2str, get_offset_time, str2time
 from socket import error as socket_error
+from cache import TVRageCache
 
 
 class List(object):
@@ -56,6 +58,8 @@ class NextEpisode(List):
         self._username = username
         self._password = password
         self._offset = offset
+
+        self._cache = TVRageCache()
 
         if autologin:
             self.do_login(
@@ -142,15 +146,27 @@ class NextEpisode(List):
                     'exact': 1
                 })
             )
-
-            try:
-                resp, content = h.request(url)
-            except socket_error:
-                resp, content = ("", "")
-
             _today = time2str()
 
-            self.list[idx]['TV Rage'] = self._regexp_tvrage(content)
+            self.list[idx]['TV Rage'] = self._cache.get_cache(self.list[idx]['index'])
+            if self.list[idx]['TV Rage'] is None:
+                try:
+                    resp, content = h.request(url)
+                except socket_error:
+                    resp, content = ("", "")
+                except BadStatusLine:
+                    resp, content = ("", "")
+
+                self.list[idx]['TV Rage'] = self._regexp_tvrage(content)
+                if self.list[idx]['TV Rage']['Next Episode']['Air Date'] == 'N/A':
+                    _expire = get_offset_time(time2str(), offset=7)
+                else:
+                    _expire = str2time(self.list[idx]['TV Rage']['Next Episode']['Air Date'])
+                self._cache.write_cache(
+                    self.list[idx]['index'],
+                    self.list[idx]['TV Rage'],
+                    _expire
+                )
 
             if _today == self.list[idx]['TV Rage']['Next Episode']['Air Date']:
                 self.today_list.append(self.list[idx])
