@@ -159,9 +159,10 @@ class NextEpisode(List):
 
                 self.list[idx]['TV Rage'] = self._regexp_tvrage(content)
                 if self.list[idx]['TV Rage']['Next Episode']['Air Date'] == 'N/A':
-                    _expire = get_offset_time(time2str(), offset=7)
+                    _expire = str2time(get_offset_time(time2str(), offset=7))
                 else:
                     _expire = str2time(self.list[idx]['TV Rage']['Next Episode']['Air Date'])
+
                 self._cache.write_cache(
                     self.list[idx]['index'],
                     self.list[idx]['TV Rage'],
