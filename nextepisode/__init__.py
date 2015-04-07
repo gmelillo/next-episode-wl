@@ -33,12 +33,12 @@ class List(object):
         self.list[key] = value
 
     def __repr__(self):
-        return repr(self.list)
+        return "<{} List of {} item>".format(self.__class__.__name__, self.__len__())
 
     def __str__(self):
         return self.__repr__()
 
-    def _add_value(self, value):
+    def append(self, value):
         for item in self.list:
             if item == value:
                 return False
@@ -50,14 +50,14 @@ class NextEpisode(List):
     def __init__(self, username, password, **kwargs):
         super(List, self).__init__()
         self.browser = mechanize.Browser()
-        self.add_show = self._add_value
+        self.add_show = self.append
         self.today_list = []
 
         self._cache_dir = '/tmp/.necd'
         self._logghedin = False
         self._username = username
         self._password = password
-        self._offset = kwargs.get('offser', 0)
+        self._offset = kwargs.get('offset', 0)
 
         self._cache = TVRageCache(cachefile=kwargs.get('cachefile', TVRageCache.DEFAULT_CACHE_FILE))
 
@@ -69,6 +69,9 @@ class NextEpisode(List):
 
         if kwargs.get('autoupdate', True):
             self.update_list()
+
+    def __repr__(self):
+        return "<{} {}@next-episode.net WL: {} Shows>".format(self.__class__.__name__, self._username, self.__len__())
 
     def do_login(self, username, password):
         self.browser.open("http://next-episode.net/")
@@ -95,13 +98,13 @@ class NextEpisode(List):
                 if link.contents[0] == "V":
                     link.contents[0] = "V (2009)"
                 try:
-                    self._add_value({
+                    self.append({
                         'Name': [link.contents[0]],
                         'index': uuid3(NAMESPACE_OID, link.get('href').encode('utf8', 'ignore')).__str__(),
                         'URL': link.get('href').encode('utf8', 'ignore')
                     })
                 except UnicodeDecodeError:
-                    self._add_value({
+                    self.append({
                         'Name': [link.contents[0]],
                         'index': 'N/A',
                         'URL': link.get('href').encode('utf8', 'ignore')
