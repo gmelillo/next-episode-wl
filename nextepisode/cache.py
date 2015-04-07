@@ -2,12 +2,13 @@ __author__ = 'Gabriel Melillo<gabriel@melillo.me>'
 __version__ = '0.1'
 
 from sqlite3 import connect
+from tempfile import gettempdir
 from os import path
 from json import dumps, loads
 
 
 class TVRageCache(object):
-    DEFAULT_CACHE_FILE = 'tvrage.cache'
+    DEFAULT_CACHE_FILE = path.abspath(gettempdir() + '/tvrage.cache')
 
     def __init__(self, **kwargs):
         self._cache_file = kwargs.get('cachefile', self.DEFAULT_CACHE_FILE)
@@ -34,6 +35,8 @@ class TVRageCache(object):
         else:
             self._db = connect(self._cache_file)
             self._cursor = self._db.cursor()
+
+        self._connected = True
 
     def _clear_expired(self):
         self._cursor.execute('''DELETE FROM tvrage WHERE expire <= date('now')''')

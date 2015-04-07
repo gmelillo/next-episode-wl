@@ -13,7 +13,7 @@ CLASSIFIERS = [
 
 setup(
     name='NextEpisode',
-    version='0.5.6',
+    version='0.5.7',
     author="Gabriel Melillo",
     author_email="gabriel@melillo.me",
     maintainer="Gabriel Melillo",
