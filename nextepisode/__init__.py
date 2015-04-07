@@ -7,7 +7,7 @@ from urllib import urlencode
 from regexp import regexp_search, Expression
 from httplib2 import Http
 from bs4 import BeautifulSoup
-from time import time2str
+from time import time2str, get_offset_time
 from socket import error as socket_error
 
 
@@ -45,7 +45,7 @@ class List(object):
 
 
 class NextEpisode(List):
-    def __init__(self, username, password, autologin=True, autoupdate=True):
+    def __init__(self, username, password, autologin=True, autoupdate=True, offset=0):
         super(List, self).__init__()
         self.browser = mechanize.Browser()
         self.add_show = self._add_value
@@ -55,6 +55,7 @@ class NextEpisode(List):
         self._logghedin = False
         self._username = username
         self._password = password
+        self._offset = offset
 
         if autologin:
             self.do_login(
@@ -102,6 +103,36 @@ class NextEpisode(List):
                         'URL': link.get('href').encode('utf8', 'ignore')
                     })
 
+    def _regexp_tvrage(self, content):
+        return {
+            'Show ID': regexp_search(Expression.SHOW_ID, content),
+            'Show Name': regexp_search(Expression.SHOW_NAME, content),
+            'URL': regexp_search(Expression.URL, content),
+            'Premiered': regexp_search(Expression.PREMIERED, content),
+            'Country': regexp_search(Expression.COUNTRY, content),
+            'Status': regexp_search(Expression.STATUS, content),
+            'Classification': regexp_search(Expression.CLASSIFICATION, content),
+            'Genres': regexp_search(Expression.GENRES, content),
+            'Network': regexp_search(Expression.NETWORK, content),
+            'Airtime': regexp_search(Expression.AIRTIME, content),
+            'Latest Episode': {
+                'Number': regexp_search(Expression.LEPISODE, content, number=1),
+                'Title': regexp_search(Expression.LEPISODE, content, number=2),
+                'Air Date': get_offset_time(
+                    regexp_search(Expression.LEPISODE, content, number=3),
+                    offset=self._offset
+                )
+            },
+            'Next Episode': {
+                'Number': regexp_search(Expression.NEPISODE, content, number=1),
+                'Title': regexp_search(Expression.NEPISODE, content, number=2),
+                'Air Date': get_offset_time(
+                    regexp_search(Expression.NEPISODE, content, number=3),
+                    offset=self._offset
+                )
+            }
+        }
+
     def attach_tvrage_info(self):
         for idx, show in enumerate(self.list):
             h = Http(self._cache_dir)
@@ -119,28 +150,7 @@ class NextEpisode(List):
 
             _today = time2str()
 
-            self.list[idx]['TV Rage'] = {
-                'Show ID': regexp_search(Expression.SHOW_ID, content),
-                'Show Name': regexp_search(Expression.SHOW_NAME, content),
-                'URL': regexp_search(Expression.URL, content),
-                'Premiered': regexp_search(Expression.PREMIERED, content),
-                'Country': regexp_search(Expression.COUNTRY, content),
-                'Status': regexp_search(Expression.STATUS, content),
-                'Classification': regexp_search(Expression.CLASSIFICATION, content),
-                'Genres': regexp_search(Expression.GENRES, content),
-                'Network': regexp_search(Expression.NETWORK, content),
-                'Airtime': regexp_search(Expression.AIRTIME, content),
-                'Latest Episode': {
-                    'Number': regexp_search(Expression.LEPISODE, content, number=1),
-                    'Title': regexp_search(Expression.LEPISODE, content, number=2),
-                    'Air Date': regexp_search(Expression.LEPISODE, content, number=3)
-                },
-                'Next Episode': {
-                    'Number': regexp_search(Expression.NEPISODE, content, number=1),
-                    'Title': regexp_search(Expression.NEPISODE, content, number=2),
-                    'Air Date': regexp_search(Expression.NEPISODE, content, number=3)
-                }
-            }
+            self.list[idx]['TV Rage'] = self._regexp_tvrage(content)
 
             if _today == self.list[idx]['TV Rage']['Next Episode']['Air Date']:
                 self.today_list.append(self.list[idx])
