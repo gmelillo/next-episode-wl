@@ -1,5 +1,5 @@
 __author__ = "Gabriel Melillo<gabriel@melillo.me>"
-__version__ = "0.5.6"
+__version__ = "0.5.7"
 
 import mechanize
 from uuid import uuid3, NAMESPACE_OID
@@ -47,7 +47,7 @@ class List(object):
 
 
 class NextEpisode(List):
-    def __init__(self, username, password, autologin=True, autoupdate=True, offset=0):
+    def __init__(self, username, password, **kwargs):
         super(List, self).__init__()
         self.browser = mechanize.Browser()
         self.add_show = self._add_value
@@ -57,17 +57,17 @@ class NextEpisode(List):
         self._logghedin = False
         self._username = username
         self._password = password
-        self._offset = offset
+        self._offset = kwargs.get('offser', 0)
 
-        self._cache = TVRageCache()
+        self._cache = TVRageCache(cachefile=kwargs.get('cachefile', TVRageCache.DEFAULT_CACHE_FILE))
 
-        if autologin:
+        if kwargs.get('autologin', True):
             self.do_login(
                 username=username,
                 password=password
             )
 
-        if autoupdate:
+        if kwargs.get('autoupdate', True):
             self.update_list()
 
     def do_login(self, username, password):

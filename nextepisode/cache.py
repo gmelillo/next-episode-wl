@@ -7,8 +7,10 @@ from json import dumps, loads
 
 
 class TVRageCache(object):
+    DEFAULT_CACHE_FILE = 'tvrage.cache'
+
     def __init__(self, **kwargs):
-        self._cache_file = kwargs.get('cachefile', 'tvrage.cache')
+        self._cache_file = kwargs.get('cachefile', self.DEFAULT_CACHE_FILE)
         self._cursor = None
         self._db = None
         self._connected = False
