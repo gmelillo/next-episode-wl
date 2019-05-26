@@ -1,4 +1,4 @@
-argparse==1.2.1
+argparse==1.4.0
 beautifulsoup4==4.7.1
 httplib2==0.9
 mechanize==0.4.2
