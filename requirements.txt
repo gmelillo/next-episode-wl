@@ -1,5 +1,5 @@
 argparse==1.4.0
 beautifulsoup4==4.8.0
-httplib2==0.13.0
+httplib2==0.13.1
 mechanize==0.4.2
 wsgiref==0.1.2
